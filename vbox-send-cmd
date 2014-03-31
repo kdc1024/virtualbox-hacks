@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Usage:
+#
+#   vbox-send-cmd <virtual-machine-name> <string-to-send>
+#
+# Example usage:
+#
+#    vbox-send-cmd test-machine-6 \
+#        "linux ksdevice=link ks=http://kickstarter/ks-vm.cgi?build_ver=4.5.2.11&distro_ver=6.5 <ENTER>"
+#
+
+
+cleanup() {
+  :
+}
+
+errHandler() {
+  echo "$0:  some unexpected error happened" 1>&2
+  cleanup
+  exit 1
+}
+
+main() {
+  IFS="`printf ' \n\t'`"
+  set -E
+  set -u
+  trap errHandler ERR HUP INT QUIT TERM
+
+  if [ $# != 2 ] ; then
+    echo "Usage vbox-send-cmd <virtual-machine-name> <string-to-send>" 1>&2
+    exit 1
+  fi
+  
+  MACHINE="$1"
+  MESSAGE="$2"
+  
+  KEYCODES=`ascii2keyboardscancode "$MESSAGE"`
+  
+  for k in $KEYCODES ; do
+  
+    VBoxManage controlvm "$MACHINE" keyboardputscancode "$k"
+  
+    # the reason for the pause here is that we have found that it is
+    # easy to overrun the VirtualBox keyboard-scancode-reading
+    # mechanism.
+    perl -e ' select(undef, undef, undef, 0.100);'
+  
+  done
+  
+}
+
+main "${@}"
+exit $?

@@ -1,0 +1,164 @@
+#!/usr/bin/perl
+
+# author: kevin d. clark
+
+# example usage:
+#
+#    ascii2keyboardscancode "linux ksdevice=link ks=http://kickstarter/ks-vm.cgi?build_ver=4.5.2.11&distro_ver=6.5 <ENTER>"
+#
+#
+
+
+#  Design note: this code was heavily rewritten when I moved from
+#  VirtualBox 3.x to VirtualBox 4.x.  This code will not work* with
+#  VirtualBox 3.x.
+
+
+
+
+use warnings;
+use strict;
+
+my $DEBUG=0;
+
+my %kmap = (
+
+            "\033" => "01 81",  # esc
+
+            "1"    => "02 82",
+            "!"    => "2a 02 82 aa",
+            "2"    => "03 83",
+            "@"    => "2a 03 83 aa",
+            "3"    => "04 84",
+            "#"    => "2a 04 84 aa",
+            "4"    => "05 85",
+            "\$"   => "2a 05 85 aa",
+            "5"    => "06 86",
+            "%"    => "2a 06 87 aa",
+            "6"    => "07 87",
+            "^"    => "2a 07 87 aa",
+            "7"    => "08 88",
+            "&"    => "2a 08 88 aa",
+            "8"    => "09 89",
+            "*"    => "2a 09 89 aa",
+            "9"    => "0a 8a",
+            "("    => "2a 0a 8a aa",
+            "0"    => "0b 8b",
+            ")"    => "2a 0b 8b aa",
+            "-"    => "0c 8c",
+            "_"    => "2a 0c 8c aa",
+            "="    => "0d 8d",
+            "+"    => "2a 0d 8d aa",
+            "\010" => "0e 8e",  # backspace
+
+            "\011" => "0f 8f",  # tab
+            "q"    => "10 90",
+            "Q"    => "2a 10 90 aa",
+            "w"    => "11 91",
+            "W"    => "2a 11 91 aa",
+            "e"    => "12 92",
+            "E"    => "2a 12 92 aa",
+            "r"    => "13 93",
+            "R"    => "2a 13 93 aa",
+            "t"    => "14 94",
+            "T"    => "2a 14 94 aa",
+            "y"    => "15 95",
+            "Y"    => "2a 15 95 aa",
+            "u"    => "16 96",
+            "U"    => "2a 16 96 aa",
+            "i"    => "17 97",
+            "I"    => "2a 17 97 aa",
+            "o"    => "18 98",
+            "O"    => "2a 18 98 aa",
+            "p"    => "19 99",
+            "P"    => "2a 19 99 aa",
+            "["    => "1a 9a",
+            "{"    => "2a 1a 9a aa",
+            "]"    => "1b 9b",
+            "}"    => "2a 1b 9b aa",
+            "\012" => "1c 9c",  # enter <=> newline
+
+            "a"    => "1e 9e",
+            "A"    => "2a 1e 9e aa",
+            "s"    => "1f 9f",
+            "S"    => "2a 1f 9f aa",
+            "d"    => "20 a0",
+            "D"    => "2a 20 a0 aa",
+            "f"    => "21 a1",
+            "F"    => "2a 21 a1 aa",
+            "g"    => "22 a2",
+            "G"    => "2a 22 a2 aa",
+            "h"    => "23 a3",
+            "H"    => "2a 23 a3 aa",
+            "j"    => "24 a4",
+            "J"    => "2a 24 a4 aa",
+            "k"    => "25 a5",
+            "K"    => "2a 25 a5 aa",
+            "l"    => "26 a6",
+            "L"    => "2a 26 a6 aa",
+
+            ";"    => "27 a7",
+            ":"    => "2a 27 a7 aa",
+            "'"    => "28 a8",
+            "\""   => "2a 28 a8 aa",
+
+            "`"    => "29 a9",
+            "~"    => "2a 29 a9 aa",
+
+            "\\"   => "2b ab",
+            "|"    => "2a 2b ab aa",
+
+            "z"    => "2c ac",
+            "Z"    => "2a 2c ac aa",
+            "x"    => "2d ad",
+            "X"    => "2a 2d ad aa",
+            "c"    => "2e ae",
+            "C"    => "2a 2e ae aa",
+            "v"    => "2f af",
+            "V"    => "2a 2f af aa",
+            "b"    => "30 b0",
+            "B"    => "2a 30 b0 aa",
+            "n"    => "31 b1",
+            "N"    => "2a 31 b1 aa",
+            "m"    => "32 b2",
+            "M"    => "2a 32 b2 aa",
+
+            ","    => "33 b3",
+            "<"    => "2a 33 b3 aa",
+            "."    => "34 b4 ",
+            ">"    => "2a 34 b4 aa",
+            "/"    => "35 b5",
+            "?"    => "2a 35 b5 aa",
+
+            " "    => "39 b9",  # space
+	   );
+
+
+my $asciistr = $ARGV[0];
+
+print "ascii string:  $asciistr\n" if ($DEBUG);
+
+
+$asciistr =~ s/<ESC>/\033/g;
+$asciistr =~ s/<BACKSPACE>/\010/g;
+$asciistr =~ s/<TAB>/\011/g;
+$asciistr =~ s/<ENTER>/\012/g;
+
+
+
+
+
+for my $char (split(//, $asciistr)) {
+
+  if (!defined($kmap{$char})) {
+    die "undefined $char\n";
+  }
+  else {
+    my @scancodes = split(/\s+/, $kmap{$char});
+
+    map { print $_ . " " } @scancodes;
+
+  }
+}
+
+print "\n";
